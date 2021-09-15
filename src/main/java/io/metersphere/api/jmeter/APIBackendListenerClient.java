@@ -3,8 +3,8 @@ package io.metersphere.api.jmeter;
 import com.alibaba.fastjson.JSON;
 import io.metersphere.api.jmeter.constants.ApiRunMode;
 import io.metersphere.api.jmeter.constants.RequestType;
-import io.metersphere.api.module.*;
 import io.metersphere.api.jmeter.utils.CommonBeanFactory;
+import io.metersphere.api.module.*;
 import io.metersphere.api.service.JmeterExecuteService;
 import io.metersphere.api.service.ProducerService;
 import io.metersphere.node.util.LogUtil;
@@ -151,7 +151,14 @@ public class APIBackendListenerClient extends AbstractBackendListenerClient impl
             LogUtil.error("处理执行数据异常：" + e.getMessage());
         }
         // 推送执行结果
-        producerServer.send(JSON.toJSONString(testResult));
+        try {
+            producerServer.send(JSON.toJSONString(testResult));
+        } catch (Exception ex) {
+            LogUtil.error("KAFKA 推送结果异常：[" + testId + "]" + ex.getMessage());
+            // 补偿一个结果防止持续Running
+            testResult.getScenarios().clear();
+            producerServer.send(JSON.toJSONString(testResult));
+        }
         jmeterExecuteService.remove(amassReport, testId);
         queue.clear();
         super.teardownTest(context);
