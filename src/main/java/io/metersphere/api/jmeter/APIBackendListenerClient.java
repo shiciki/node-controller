@@ -159,6 +159,10 @@ public class APIBackendListenerClient extends AbstractBackendListenerClient impl
             testResult.getScenarios().clear();
             producerServer.send(JSON.toJSONString(testResult));
         }
+        LogUtil.info("正在执行中的并发报告数量：" + jmeterExecuteService.getRunningSize());
+
+        LogUtil.info("正在执行中的场景+[" + amassReport + "]的数量：" + jmeterExecuteService.getRunningTasks(amassReport));
+
         jmeterExecuteService.remove(amassReport, testId);
         queue.clear();
         super.teardownTest(context);

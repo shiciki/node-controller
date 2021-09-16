@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.NewDriver;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jorphan.collections.HashTree;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,12 +29,14 @@ import java.util.Map;
 public class JmeterExecuteService {
     @Resource
     private JMeterService jMeterService;
-    @Resource
-    private KafkaTemplate<String, Object> kafkaTemplate;
 
     private static String url = null;
     // 记录所以执行中的请求/场景
     private Map<String, List<String>> runningTasks = new HashMap<>();
+
+    public int getRunningSize() {
+        return runningTasks.values().size();
+    }
 
     private static InputStream getStrToStream(String sInputString) {
         if (StringUtils.isNotEmpty(sInputString)) {
@@ -108,6 +109,7 @@ public class JmeterExecuteService {
                 // 开始执行
                 jMeterService.run(runRequest, testPlan);
                 FileUtils.deleteFile(bodyFile.getPath());
+                jmxFile.delete();
             } else {
                 MSException.throwException("未找到执行的JMX文件");
             }
