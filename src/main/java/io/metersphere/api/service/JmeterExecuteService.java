@@ -4,6 +4,7 @@ import io.metersphere.api.controller.request.RunRequest;
 import io.metersphere.api.jmeter.JMeterService;
 import io.metersphere.api.jmeter.utils.FileUtils;
 import io.metersphere.api.jmeter.utils.MSException;
+import io.metersphere.api.service.utils.ZipSpiderUtil;
 import io.metersphere.node.util.LogUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jmeter.NewDriver;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 
@@ -23,6 +25,8 @@ public class JmeterExecuteService {
     private JMeterService jMeterService;
     @Resource
     LoadTestProducer loadTestProducer;
+
+    private String serverUrl;
 
     private static InputStream getStrToStream(String sInputString) {
         if (StringUtils.isNotEmpty(sInputString)) {
@@ -46,18 +50,24 @@ public class JmeterExecuteService {
         }
     }
 
-    public String run(RunRequest request, MultipartFile[] bodyFiles, MultipartFile[] jarFiles) {
+    public String run(RunRequest request, MultipartFile[] bodyFiles) {
         if (request == null || request.getJmx() == null) {
             return "执行文件为空，无法执行！";
         }
-        LogUtil.info(request.getJmx());
-        // 检查KAFKA
-        loadTestProducer.checkKafka();
-        // 生成附件/JAR文件
-        FileUtils.createFiles(bodyFiles, FileUtils.BODY_FILE_DIR);
-        FileUtils.createFiles(jarFiles, FileUtils.JAR_FILE_DIR);
         try {
-            this.loadJar(FileUtils.JAR_FILE_DIR);
+            LogUtil.info(request.getJmx());
+            // 检查KAFKA
+            loadTestProducer.checkKafka();
+            if (StringUtils.isEmpty(serverUrl)) {
+                serverUrl = request.getServerUrl();
+                // 第一次执行
+                this.loadJar();
+            }
+            serverUrl = request.getServerUrl();
+            // 生成附件
+            if (bodyFiles != null && bodyFiles.length > 0) {
+                FileUtils.createFiles(bodyFiles, FileUtils.BODY_FILE_DIR);
+            }
             // 生成执行脚本
             InputStream inputSource = getStrToStream(request.getJmx());
             Object scriptWrapper = SaveService.loadElement(inputSource);
@@ -70,4 +80,16 @@ public class JmeterExecuteService {
         }
         return "SUCCESS";
     }
+
+    public void loadJar() {
+        if (StringUtils.isNotEmpty(serverUrl)) {
+            File file = ZipSpiderUtil.downloadFile(serverUrl, FileUtils.JAR_FILE_DIR);
+            if (file != null) {
+                ZipSpiderUtil.unzip(file.getPath(), FileUtils.JAR_FILE_DIR);
+                this.loadJar(FileUtils.JAR_FILE_DIR);
+                FileUtils.deleteFile(file.getPath());
+            }
+        }
+    }
+
 }

@@ -19,10 +19,10 @@ public class JmeterExecuteController {
     private JmeterExecuteService jmeterExecuteService;
 
     @PostMapping(value = "/api/run", consumes = {"multipart/form-data"})
-    public String apiRun(@RequestParam(value = "files") MultipartFile[] bodyFiles, @RequestParam(value = "jarFiles") MultipartFile[] jarFiles, String request) {
+    public String apiRun(@RequestParam(value = "files") MultipartFile[] bodyFiles, String request) {
         LogUtil.info("接收到测试请求 start ");
         RunRequest runRequest = JSON.parseObject(request, RunRequest.class);
-        return jmeterExecuteService.run(runRequest, bodyFiles, jarFiles);
+        return jmeterExecuteService.run(runRequest, bodyFiles);
     }
 
     @GetMapping("/status")

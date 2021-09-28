@@ -138,7 +138,18 @@ public class APIBackendListenerClient extends AbstractBackendListenerClient impl
         testResult.getScenarios().sort(Comparator.comparing(ScenarioResult::getId));
         testResult.setRunMode(this.runMode);
         // 推送执行结果
-        loadTestProducer.sendMessage(JSON.toJSONString(testResult));
+        try {
+            loadTestProducer.sendMessage(JSON.toJSONString(testResult));
+        } catch (Exception e) {
+            if (testResult != null && testResult.getScenarios().size() > 0) {
+                for (ScenarioResult scenario : testResult.getScenarios()) {
+                    if (scenario.getRequestResults() != null) {
+                        scenario.getRequestResults().clear();
+                    }
+                }
+            }
+            loadTestProducer.sendMessage(JSON.toJSONString(testResult));
+        }
         queue.clear();
         super.teardownTest(context);
     }

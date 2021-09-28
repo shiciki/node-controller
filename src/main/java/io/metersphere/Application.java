@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @ServletComponentScan
 @EnableConfigurationProperties({
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.PropertySource;
 })
 @PropertySource(value = {"file:/opt/metersphere/conf/metersphere.properties"}, encoding = "UTF-8", ignoreResourceNotFound = true)
 @SpringBootApplication
+@EnableScheduling
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
