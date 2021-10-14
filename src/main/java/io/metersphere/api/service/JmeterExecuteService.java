@@ -73,7 +73,12 @@ public class JmeterExecuteService {
             Object scriptWrapper = SaveService.loadElement(inputSource);
             HashTree testPlan = JMeterService.getHashTree(scriptWrapper);
             // 开始执行
-            jMeterService.run(request, testPlan);
+            LogUtil.info("request:"+request);
+            if ( request.getJinput() == null) {
+                jMeterService.run(request, testPlan);
+            }else{
+                jMeterService.run(request, testPlan,request.getJinput());
+            }
         } catch (Exception e) {
             LogUtil.error(e.getMessage());
             return e.getMessage();

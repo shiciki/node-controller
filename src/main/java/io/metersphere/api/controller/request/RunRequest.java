@@ -12,4 +12,5 @@ public class RunRequest {
     private String jmx;
     private RunModeConfig config;
     private String serverUrl;
+    private String jinput;
 }
