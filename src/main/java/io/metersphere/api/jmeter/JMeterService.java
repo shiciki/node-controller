@@ -80,12 +80,13 @@ public class JMeterService {
         Arguments arguments = new Arguments();
         arguments.setName("input");
         for(String kv:input.split(",")){
-            arguments.addArgument(kv.split("=")[0],kv.split("=")[1]);
+            arguments.addArgument(kv.split(":")[0],kv.split(":")[1]);
         }
         //arguments.addArgument("a","qa3");
         testPlan.add(testPlan.getArray()[0],arguments);
 
         LogUtil.info("afteradd:"+testPlan);
+        Log.info("afteradd"+testPlan);
 
     }
 
